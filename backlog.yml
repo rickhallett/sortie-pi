@@ -13,8 +13,18 @@
     at the pipeline level — either by wrapping tool functions or intercepting
     calls in the validation pipeline before dispatching to sessions.
     Lead sessions currently get unrestricted codingTools.
+  status: partially_addressed
+  notes: >
+    Phase 6 implementation calls createDomainLock with correct patterns
+    and cwd, but the returned checker function is discarded (ISSUE-001
+    from Phase 6 Gemini review). The Pi SDK has no public beforeToolCall
+    hook, so enforcement requires wrapping built-in tools via
+    createWriteTool()/createBashTool() factories. The pipeline test
+    (ISSUE-005) asserts factory invocation but not enforcement — an
+    honest limitation given SDK constraints.
   acceptance_criteria:
     - Lead session writes are scoped to .sortie/{run_id}/** at runtime
     - Attempts to write outside the scoped path return an error to the agent
     - Bash tool is blocked for lead sessions (enforced by domain lock)
-    - Integration tested in pipeline e2e tests
+    - Domain lock return value is captured and wired into tool wrappers
+    - Integration tested in pipeline e2e tests with write-outside-scope assertion
