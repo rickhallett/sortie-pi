@@ -290,6 +290,32 @@ describe("invokeReviewer", () => {
     expect(typeof result.wall_time_ms).toBe("number");
   });
 
+  test("timeout calls session.dispose() to stop orphaned LLM call (VERIFY-001)", async () => {
+    let disposed = false;
+    const session = {
+      prompt: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      },
+      getLastAssistantText: () => "",
+      getSessionStats: () => ({
+        sessionFile: undefined,
+        sessionId: "test",
+        userMessages: 1,
+        assistantMessages: 1,
+        toolCalls: 0,
+        toolResults: 0,
+        totalMessages: 2,
+        tokens: { input: 100, output: 50, cacheRead: 0, cacheWrite: 0, total: 150 },
+        cost: 0.001,
+      }),
+      dispose: () => { disposed = true; },
+      subscribe: () => () => {},
+    } as unknown as AgentSession;
+
+    await invokeReviewer(session, "Review this code", "test-model", 50);
+    expect(disposed).toBe(true);
+  });
+
   test("wall_time_ms reflects actual elapsed time", async () => {
     const session = createMockSession(VALID_YAML_PASS, {}, { promptDelay: 50 });
 

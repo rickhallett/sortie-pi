@@ -142,7 +142,16 @@ export async function invokeReviewer(
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error("Timeout: reviewer exceeded time limit")), timeout);
       });
-      await Promise.race([session.prompt(prompt), timeoutPromise]);
+      try {
+        await Promise.race([session.prompt(prompt), timeoutPromise]);
+      } catch (err) {
+        // On timeout, dispose the session to stop the orphaned LLM call
+        // from consuming tokens/memory (VERIFY-001)
+        if (err instanceof Error && err.message.includes("Timeout")) {
+          try { session.dispose(); } catch { /* swallow dispose errors */ }
+        }
+        throw err;
+      }
     } else {
       await session.prompt(prompt);
     }
