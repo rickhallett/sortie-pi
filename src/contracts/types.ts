@@ -84,6 +84,8 @@ export interface LedgerEntry {
   mode: string;
   verdict: VerdictValue;
   convergence: string;
+  triage_action?: TriageAction;
+  exit_code?: 0 | 1 | 2;
   debrief_model: string;
   roster_used: string[];
   model_status: Record<string, {

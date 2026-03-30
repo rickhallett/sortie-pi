@@ -2,6 +2,19 @@
 
 import { readFile } from "node:fs/promises";
 
+function quoteMarkdownLiteral(value: string): string {
+  const backtickRuns = value.match(/`+/g) ?? [];
+  const longestRun = backtickRuns.reduce(
+    (max, run) => Math.max(max, run.length),
+    0,
+  );
+  const fence = "`".repeat(longestRun + 1);
+  const paddedValue =
+    value.startsWith("`") || value.endsWith("`") ? ` ${value} ` : value;
+
+  return `${fence}${paddedValue}${fence}`;
+}
+
 /**
  * Assemble the prompt sent to each reviewer.
  *
@@ -15,7 +28,7 @@ export function assembleReviewerPrompt(
   diff: string,
   branch: string,
 ): string {
-  const body = template.replaceAll("{branch}", branch);
+  const body = template.replaceAll("{branch}", quoteMarkdownLiteral(branch));
   return `${body}\n---\n\`\`\`diff\n${diff}\n\`\`\``;
 }
 
@@ -37,8 +50,8 @@ export function assembleDebriefPrompt(
 ): string {
   return template
     .replaceAll("{n}", String(n))
-    .replaceAll("{tree_sha}", treeSha)
-    .replaceAll("{branch}", branch)
+    .replaceAll("{tree_sha}", quoteMarkdownLiteral(treeSha))
+    .replaceAll("{branch}", quoteMarkdownLiteral(branch))
     .replaceAll("{sortie_outputs}", reviewerOutputs.join("\n\n"));
 }
 

@@ -41,7 +41,7 @@ bun run build                  # compile to dist/
 
 ## Architecture
 
-Current dependency direction: contracts -> harness -> tools. The `validation` and `cli` directories exist as scaffolding, but they do not yet contain implementation modules.
+Current dependency direction: contracts -> harness -> tools -> validation -> cli.
 
 ### `src/contracts/` — Protocol-aligned domain logic (zero Pi SDK imports)
 - `types.ts` — Shared protocol types (Finding, ReviewerOutput, Verdict, TriageResult, etc.)
@@ -70,11 +70,22 @@ Current dependency direction: contracts -> harness -> tools. The `validation` an
 ### `src/test-support/` — Shared helpers for fixture-backed tests
 - `load-fixture.ts` — Reads YAML fixtures from `fixtures/`
 
-### `src/validation/` — Validation pipeline scaffold
-- Directory exists, but protocol step orchestration modules are not implemented yet
+### `src/validation/` — Validation pipeline
+- `pipeline.ts` — Full protocol step orchestration
+- `pipeline.test.ts` — Lifecycle wiring coverage with session-factory mocks
 
-### `src/cli/` — Operator entry-point scaffold
-- Directory exists, but `validate`, `status`, and disposition commands are not implemented yet
+### `src/cli/` — Operator entry points
+- `validate.ts` — Config loading plus pipeline execution
+- `status.ts` — Ledger status output
+- `dispose.ts` — Disposition update commands
+- `index.ts` — CLI argv parsing and dispatch
+
+### `prompts/` — Prompt assets
+- `sortie-code.md`, `sortie-tests.md`, `sortie-docs.md` — Reviewer prompts referenced by `harness.yaml`
+- `debrief.md` — Debrief synthesis prompt referenced by `harness.yaml`
+
+### `.pi/agents/` — Pi agent definitions
+- Orchestrator, validation lead, and reviewer role definitions used as static protocol guidance
 
 ## Key Design Principles
 

@@ -43,11 +43,11 @@ bun run build       # compile
   - Protocol contracts for identity, triage, ledger, attestations, fallback debrief, and verdict artifacts
   - Harness modules for config loading, prompt assembly, session creation, reviewer invocation, domain locking, event capture, and conversation logging
   - Native Pi custom tools for triage, ledger, and identity operations
-- Scaffolded but not yet implemented:
-  - `src/validation/` pipeline orchestration
-  - `src/cli/` operator entry points
+  - Validation pipeline orchestration in `src/validation/pipeline.ts`
+  - Operator CLI commands in `src/cli/` for `validate`, `status`, `dispose`, and `dispose-bulk`
+  - Prompt templates in `prompts/` and Pi agent definitions in `.pi/agents/`
 
-The current repository state is heavily test-driven infrastructure and contract code. The end-to-end validation pipeline and CLI commands described in the protocol are planned next, but they are not wired into runnable `validate`, `status`, or disposition commands yet.
+The current repository state includes a runnable validation pipeline, operator-facing CLI entry points, tested prompt assets, and agent-definition scaffolding aligned to the protocol.
 
 ## Architecture
 
@@ -57,11 +57,11 @@ src/
   harness/       # Pi SDK integration and runtime guards
   tools/         # Native Pi customTool registrations
   test-support/  # Shared fixture loaders for tests
-  validation/    # Pipeline scaffold (currently empty)
-  cli/           # CLI scaffold (currently empty)
+  validation/    # Pipeline orchestration
+  cli/           # Operator entry points
 ```
 
-The implemented dependency direction is **contracts** -> **harness** -> **tools**. The `validation` and `cli` directories already exist as scaffolding, but their production modules have not been added yet.
+The implemented dependency direction is **contracts** -> **harness** -> **tools** -> **validation** -> **cli**.
 
 See `docs/architecture.md` for the current architecture map and `claude.md` for contributor guidance.
 

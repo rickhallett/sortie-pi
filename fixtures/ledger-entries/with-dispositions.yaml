@@ -9,6 +9,8 @@ runs:
     mode: code
     verdict: pass_with_findings
     convergence: mixed
+    triage_action: block
+    exit_code: 1
     debrief_model: claude-sonnet-4-20250514
     roster_used: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
     model_status:

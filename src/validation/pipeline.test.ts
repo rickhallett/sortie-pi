@@ -31,6 +31,12 @@ import type {
 } from "../contracts/types.js";
 import type { HarnessConfig, RosterEntry } from "../harness/config.js";
 import { loadFixture } from "../test-support/load-fixture.js";
+import type {
+  EmptyDiffError as EmptyDiffErrorType,
+  PipelineInput,
+  PipelineResult,
+  UnknownModeError as UnknownModeErrorType,
+} from "./pipeline.js";
 
 // Capture the real createDomainLock before any mock.module can replace the binding.
 // bun's mock.module replaces live ESM bindings, so a later `realCreateDomainLock`
@@ -83,9 +89,9 @@ interface Workspace {
 }
 
 interface PipelineHarness {
-  runPipeline: (input: unknown) => Promise<unknown>;
-  EmptyDiffError: new () => Error;
-  UnknownModeError: new (mode: string) => Error;
+  runPipeline: (input: PipelineInput) => Promise<PipelineResult>;
+  EmptyDiffError: typeof EmptyDiffErrorType;
+  UnknownModeError: typeof UnknownModeErrorType;
   createReviewerSessionCalls: Array<{
     entry: RosterEntry;
     options: { cwd: string; customTools?: unknown[] };
@@ -468,13 +474,15 @@ describe("runPipeline", () => {
       ]);
       expect(harness.createLeadSessionCalls).toHaveLength(1);
 
-      expect(reviewerScripts.claude.prompts[0]).toContain(`Review branch ${BRANCH}`);
+      expect(reviewerScripts.claude.prompts[0]).toContain(
+        `Review branch \`${BRANCH}\``,
+      );
       expect(reviewerScripts.claude.prompts[0]).toContain("```diff");
       expect(reviewerScripts.claude.prompts[0]).toContain(DIFF);
 
       expect(leadScript.prompts[0]).toContain("n=2");
-      expect(leadScript.prompts[0]).toContain(`tree=${workspace.treeSha}`);
-      expect(leadScript.prompts[0]).toContain(`branch=${BRANCH}`);
+      expect(leadScript.prompts[0]).toContain(`tree=\`${workspace.treeSha}\``);
+      expect(leadScript.prompts[0]).toContain(`branch=\`${BRANCH}\``);
       expect(leadScript.prompts[0]).toContain("### claude-sonnet-4-20250514");
       expect(leadScript.prompts[0]).toContain("### gemini-2.5-pro");
       expect(result.summary.events.some((event: { type: string }) => event.type === "pipeline:complete")).toBe(
@@ -719,7 +727,7 @@ describe("runPipeline", () => {
         findings: Finding[];
       };
       expected: {
-        exit_code: number;
+        exit_code: 0 | 1 | 2;
         blocking_findings_count: number;
       };
     }>("triage-outcomes/block-convergent-critical.yaml");
@@ -766,7 +774,7 @@ describe("runPipeline", () => {
         findings: Finding[];
       };
       expected: {
-        exit_code: number;
+        exit_code: 0 | 1 | 2;
         advisory_findings_count: number;
       };
     }>("triage-outcomes/no-block-divergent-critical.yaml");

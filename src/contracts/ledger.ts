@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
 import type { LedgerEntry, Disposition } from "./types.js";
 
@@ -104,6 +105,14 @@ export class Ledger {
   }
 
   /**
+   * Retrieve a run by run_id.
+   */
+  findRunById(runId: string): LedgerEntry | undefined {
+    const data = this.load();
+    return data.runs.find((run) => run.run_id === runId);
+  }
+
+  /**
    * Query runs by branch name.
    */
   runsForBranch(branch: string): LedgerEntry[] {
@@ -128,24 +137,26 @@ export class Ledger {
       );
     }
 
-    const finding = run.findings.find((f) => f.id === findingId);
-    if (!finding) {
+    this.updateDispositionForRun(run, findingId, disposition);
+  }
+
+  /**
+   * Update one finding's disposition by run_id and recompute summary fields.
+   * Persists immediately.
+   */
+  updateDispositionByRunId(
+    runId: string,
+    findingId: string,
+    disposition: Disposition,
+  ): void {
+    const run = this.findRunById(runId);
+    if (!run) {
       throw new Error(
-        `Finding not found: id=${findingId} in run tree_sha=${treeSha}, cycle=${cycle}`,
+        `Run not found: run_id=${runId}`,
       );
     }
 
-    finding.disposition = disposition;
-
-    // Recompute summary fields
-    const summary = computeSummary(run);
-    run.dispositions = summary.dispositions;
-    run.findings_total = summary.findings_total;
-    run.findings_convergent = summary.findings_convergent;
-    run.findings_divergent = summary.findings_divergent;
-    run.by_severity = summary.by_severity;
-
-    this.persist();
+    this.updateDispositionForRun(run, findingId, disposition);
   }
 
   /**
@@ -164,19 +175,23 @@ export class Ledger {
       );
     }
 
-    for (const finding of run.findings) {
-      finding.disposition = disposition;
+    this.bulkDisposeForRun(run, disposition);
+  }
+
+  /**
+   * Update all findings in a run by run_id.
+   * Persists immediately.
+   */
+  bulkDisposeByRunId(
+    runId: string,
+    disposition: Disposition,
+  ): void {
+    const run = this.findRunById(runId);
+    if (!run) {
+      throw new Error(`Run not found: run_id=${runId}`);
     }
 
-    // Recompute summary fields
-    const summary = computeSummary(run);
-    run.dispositions = summary.dispositions;
-    run.findings_total = summary.findings_total;
-    run.findings_convergent = summary.findings_convergent;
-    run.findings_divergent = summary.findings_divergent;
-    run.by_severity = summary.by_severity;
-
-    this.persist();
+    this.bulkDisposeForRun(run, disposition);
   }
 
   /**
@@ -185,6 +200,49 @@ export class Ledger {
   private persist(): void {
     const data = this.load();
     const yaml = stringify(data);
-    writeFileSync(this.filePath, yaml, "utf-8");
+    const dir = dirname(this.filePath);
+    const tmpPath = `${this.filePath}.${process.pid}.${Date.now()}.tmp`;
+
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(tmpPath, yaml, "utf-8");
+    renameSync(tmpPath, this.filePath);
+  }
+
+  private updateDispositionForRun(
+    run: LedgerEntry,
+    findingId: string,
+    disposition: Disposition,
+  ): void {
+    const finding = run.findings.find((f) => f.id === findingId);
+    if (!finding) {
+      throw new Error(
+        `Finding not found: id=${findingId} in run_id=${run.run_id}`,
+      );
+    }
+
+    finding.disposition = disposition;
+    this.refreshRunSummary(run);
+    this.persist();
+  }
+
+  private bulkDisposeForRun(
+    run: LedgerEntry,
+    disposition: Disposition,
+  ): void {
+    for (const finding of run.findings) {
+      finding.disposition = disposition;
+    }
+
+    this.refreshRunSummary(run);
+    this.persist();
+  }
+
+  private refreshRunSummary(run: LedgerEntry): void {
+    const summary = computeSummary(run);
+    run.dispositions = summary.dispositions;
+    run.findings_total = summary.findings_total;
+    run.findings_convergent = summary.findings_convergent;
+    run.findings_divergent = summary.findings_divergent;
+    run.by_severity = summary.by_severity;
   }
 }

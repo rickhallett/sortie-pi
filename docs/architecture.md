@@ -2,7 +2,7 @@
 
 ## Current Implementation Status
 
-Sortie is currently implemented as protocol contracts, harness/runtime support, and native custom tools. The end-to-end validation pipeline and CLI surfaces are scaffolded in the repository, but they are not implemented yet.
+Sortie is currently implemented as protocol contracts, harness/runtime support, native custom tools, the end-to-end validation pipeline, and operator-facing CLI commands. Prompt templates and Pi agent definitions are also present as repository assets.
 
 ## Implemented Modules
 
@@ -45,27 +45,42 @@ Shared helpers for fixture-backed tests:
 
 - `load-fixture.ts`: YAML fixture loader rooted at `fixtures/`
 
-## Scaffolded, Not Yet Implemented
-
 ### `src/validation/`
 
-Reserved for pipeline orchestration modules that will connect diff acquisition, reviewer execution, debrief synthesis, triage, artifact writing, and exit handling.
+- `pipeline.ts`: full validation lifecycle orchestration
+- `pipeline.test.ts`: protocol-level pipeline wiring coverage
 
 ### `src/cli/`
 
-Reserved for operator-facing commands such as `validate`, `status`, and disposition workflows.
+- `validate.ts`: config loading plus validation execution
+- `status.ts`: ledger status output
+- `dispose.ts`: single and bulk disposition commands
+- `index.ts`: argv parsing and command dispatch
+
+### `prompts/`
+
+Repository prompt assets used by `harness.yaml`:
+
+- `sortie-code.md`
+- `sortie-tests.md`
+- `sortie-docs.md`
+- `debrief.md`
+
+### `.pi/agents/`
+
+Static Pi agent definitions for orchestration, lead synthesis, and reviewer roles.
 
 ## Dependency Direction
 
 The currently implemented code follows this direction:
 
-`contracts` -> `harness` -> `tools`
+`contracts` -> `harness` -> `tools` -> `validation` -> `cli`
 
 - `contracts` stays runtime-agnostic
 - `harness` owns Pi SDK interaction and runtime safety controls
 - `tools` adapt contract operations into Pi custom tools
-
-The future validation pipeline should depend on these layers rather than bypassing them.
+- `validation` composes the runtime review lifecycle
+- `cli` exposes operator-facing entry points
 
 ## Runtime Boundaries
 

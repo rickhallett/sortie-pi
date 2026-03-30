@@ -463,6 +463,8 @@ export async function runPipeline(
     mode,
     verdict: verdict.verdict,
     convergence: verdict.convergence,
+    triage_action: triageResult.action,
+    exit_code: triageResult.exit_code,
     debrief_model: config.debrief.model,
     roster_used: rosterEntries.map((e) => e.name),
     model_status: buildModelStatus(rosterEntries, reviewerOutputs),
