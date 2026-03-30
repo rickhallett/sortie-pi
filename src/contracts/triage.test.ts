@@ -80,6 +80,19 @@ describe("triageVerdict", () => {
         fixture.expected.advisory_findings_count!,
       );
     });
+
+    test("advisory findings preserve original finding payloads", () => {
+      const result = triageVerdict(fixture.input_verdict.findings, fixture.config);
+      for (const advisory of result.advisory_findings) {
+        const original = fixture.input_verdict.findings.find(f => f.id === advisory.id);
+        expect(original).toBeDefined();
+        expect(advisory.severity).toBe(original!.severity);
+        expect(advisory.file).toBe(original!.file);
+        expect(advisory.convergence).toBe(original!.convergence);
+        expect(advisory.category).toBe(original!.category);
+        expect(advisory.summary).toBe(original!.summary);
+      }
+    });
   });
 
   describe("block-convergent-critical.yaml — convergent critical blocks", () => {
@@ -102,6 +115,17 @@ describe("triageVerdict", () => {
       expect(result.blocking_findings.length).toBe(
         fixture.expected.blocking_findings_count!,
       );
+    });
+
+    test("blocking finding preserves original payload", () => {
+      const result = triageVerdict(fixture.input_verdict.findings, fixture.config);
+      const blocking = result.blocking_findings[0];
+      const original = fixture.input_verdict.findings[0];
+      expect(blocking.id).toBe(original.id);
+      expect(blocking.severity).toBe(original.severity);
+      expect(blocking.file).toBe(original.file);
+      expect(blocking.convergence).toBe(original.convergence);
+      expect(blocking.sources).toEqual(original.sources);
     });
 
     test("advisory_findings is empty", () => {
@@ -136,6 +160,13 @@ describe("triageVerdict", () => {
         fixture.expected.advisory_findings_count!,
       );
     });
+
+    test("divergent critical finding appears in advisory with full payload", () => {
+      const result = triageVerdict(fixture.input_verdict.findings, fixture.config);
+      expect(result.advisory_findings[0].id).toBe(fixture.input_verdict.findings[0].id);
+      expect(result.advisory_findings[0].severity).toBe("critical");
+      expect(result.advisory_findings[0].convergence).toBe("divergent");
+    });
   });
 
   describe("block-convergent-major.yaml — convergent major blocks when in block_on", () => {
@@ -158,6 +189,19 @@ describe("triageVerdict", () => {
       expect(result.blocking_findings.length).toBe(
         fixture.expected.blocking_findings_count!,
       );
+    });
+
+    test("blocking finding preserves original payload", () => {
+      const result = triageVerdict(fixture.input_verdict.findings, fixture.config);
+      const blocking = result.blocking_findings[0];
+      const original = fixture.input_verdict.findings[0];
+      expect(blocking.id).toBe(original.id);
+      expect(blocking.severity).toBe(original.severity);
+      expect(blocking.file).toBe(original.file);
+      expect(blocking.convergence).toBe(original.convergence);
+      expect(blocking.sources).toEqual(original.sources);
+      expect(blocking.category).toBe(original.category);
+      expect(blocking.summary).toBe(original.summary);
     });
 
     test("advisory_findings is empty", () => {

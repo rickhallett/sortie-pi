@@ -73,11 +73,13 @@ export class Ledger {
     const raw = readFileSync(this.filePath, "utf-8");
     const parsed = parse(raw);
 
-    if (!parsed || !parsed.runs) {
-      this.data = { runs: [] };
-    } else {
-      this.data = parsed as { runs: LedgerEntry[] };
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error(`Corrupt ledger file: ${this.filePath} — YAML parsed to non-object`);
     }
+    if (!Array.isArray(parsed.runs)) {
+      throw new Error(`Corrupt ledger file: ${this.filePath} — missing or invalid 'runs' array`);
+    }
+    this.data = parsed as { runs: LedgerEntry[] };
 
     return this.data;
   }

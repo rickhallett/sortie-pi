@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { loadFixture } from "../test-support/load-fixture.js";
@@ -56,6 +56,26 @@ describe("Ledger", () => {
         deferred: 0,
         disagree: 0,
       });
+    });
+  });
+
+  describe("load() — corrupt data", () => {
+    test("throws on non-YAML content", () => {
+      writeFileSync(ledgerPath, "{{{{not yaml at all", "utf-8");
+      const ledger = new Ledger(ledgerPath);
+      expect(() => ledger.load()).toThrow();
+    });
+
+    test("throws on YAML without runs key", () => {
+      writeFileSync(ledgerPath, "foo: bar\n", "utf-8");
+      const ledger = new Ledger(ledgerPath);
+      expect(() => ledger.load()).toThrow(/runs/i);
+    });
+
+    test("throws on YAML with runs as string", () => {
+      writeFileSync(ledgerPath, "runs: not-an-array\n", "utf-8");
+      const ledger = new Ledger(ledgerPath);
+      expect(() => ledger.load()).toThrow(/runs/i);
     });
   });
 
