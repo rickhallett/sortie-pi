@@ -15,10 +15,11 @@ describe("formatProgressLine", () => {
 
 describe("emitProgress", () => {
   test("calls sendCustomMessage with correct custom type and content", () => {
-    const sendFn = mock(() => {});
+    const calls: unknown[] = [];
+    const sendFn = (msg: unknown) => { calls.push(msg); };
     emitProgress(sendFn, "reviewer-claude", "reviewing diff");
-    expect(sendFn).toHaveBeenCalledTimes(1);
-    const call = sendFn.mock.calls[0][0];
+    expect(calls).toHaveLength(1);
+    const call = calls[0] as Record<string, unknown>;
     expect(call.customType).toBe("sortie:progress");
     expect(call.content).toEqual({ sortie: "reviewer-claude", status: "reviewing diff" });
     expect(call.display).toBe("reviewer-claude: reviewing diff");
