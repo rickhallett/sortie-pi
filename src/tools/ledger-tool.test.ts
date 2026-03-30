@@ -306,7 +306,7 @@ describe("sortie-ledger tool", () => {
       expect(text).toMatch(/^Error: /);
     });
 
-    test("returns error message when ledger_path points to nonexistent file", async () => {
+    test("returns run-not-found for nonexistent ledger file (treated as empty)", async () => {
       const result = await ledgerTool.execute(
         "call-err-3",
         {
@@ -321,7 +321,7 @@ describe("sortie-ledger tool", () => {
       );
 
       const text = textOf(result);
-      expect(text).toMatch(/^Error: /);
+      expect(text.toLowerCase()).toContain("not found");
     });
 
     test("returns error message when cycle is missing for find action", async () => {
