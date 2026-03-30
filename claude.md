@@ -102,3 +102,4 @@ Three-layer architecture with strict dependency direction: contracts -> harness 
 - **`.claude/agents/adversarial-security.md`**: Adversarial security review agent to proactively identify and report exploitable vulnerabilities.
 - **`.claude/agents/full-spectrum-review.md`**: Full spectrum code review agent to identify bugs, performance bottlenecks, and architectural issues.
 - **`.claude/agents/adversarial-process.md`**: Adversarial process review agent to audit git history, commit discipline, and TDD adherence.
+- **`.claude/agents/docs-architect.md`**: Documentation architect agent specializing in repository-wide documentation sync and maintaining architecture documents.
