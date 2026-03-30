@@ -60,6 +60,7 @@ Current dependency direction: contracts -> harness -> tools -> validation -> cli
 - `prompt.ts` — Template assembly with `{branch}`, `{diff}`, `{sortie_outputs}` substitution
 - `conversation-log.ts` — Session transcript capture with reviewer-name sanitization for log filenames
 - `events.ts` — Runtime event emission and aggregation
+- `prompt-assets.test.ts` — Structural tests for prompt template files
 
 ### `src/tools/` — Pi `customTool` registrations
 - `triage-tool.ts` — YAML-in/YAML-out wrapper around contract triage
@@ -67,8 +68,9 @@ Current dependency direction: contracts -> harness -> tools -> validation -> cli
 - `identity-tool.ts` — Tree SHA, next-cycle, and run-id helpers with basic path validation
 - `index.ts` — Heterogeneous tool export for lead sessions
 
-### `src/test-support/` — Shared helpers for fixture-backed tests
+### `src/test-support/` — Shared helpers and structural tests
 - `load-fixture.ts` — Reads YAML fixtures from `fixtures/`
+- `agent-definitions.test.ts` — Structural validation of `.pi/agents/` definitions
 
 ### `src/validation/` — Validation pipeline
 - `pipeline.ts` — Full protocol step orchestration
@@ -77,8 +79,9 @@ Current dependency direction: contracts -> harness -> tools -> validation -> cli
 ### `src/cli/` — Operator entry points
 - `validate.ts` — Config loading plus pipeline execution
 - `status.ts` — Ledger status output
-- `dispose.ts` — Disposition update commands
+- `dispose.ts` — Single and bulk disposition commands (`dispose` and `dispose-bulk`)
 - `index.ts` — CLI argv parsing and dispatch
+- `smoke.test.ts` — End-to-end CLI smoke tests via subprocess execution
 
 ### `prompts/` — Prompt assets
 - `sortie-code.md`, `sortie-tests.md`, `sortie-docs.md` — Reviewer prompts referenced by `harness.yaml`

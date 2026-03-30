@@ -39,15 +39,17 @@ bun run build       # compile
 
 ## Current Status
 
-- Implemented today:
-  - Protocol contracts for identity, triage, ledger, attestations, fallback debrief, and verdict artifacts
-  - Harness modules for config loading, prompt assembly, session creation, reviewer invocation, domain locking, event capture, and conversation logging
-  - Native Pi custom tools for triage, ledger, and identity operations
-  - Validation pipeline orchestration in `src/validation/pipeline.ts`
-  - Operator CLI commands in `src/cli/` for `validate`, `status`, `dispose`, and `dispose-bulk`
-  - Prompt templates in `prompts/` and Pi agent definitions in `.pi/agents/`
+All 22 implementation tasks across Phases 0--8 are complete. **738 tests pass across 48 test files.**
 
-The current repository state includes a runnable validation pipeline, operator-facing CLI entry points, tested prompt assets, and agent-definition scaffolding aligned to the protocol.
+- Protocol contracts for identity, triage, ledger, attestations, fallback debrief, and verdict artifacts
+- Harness modules for config loading, prompt assembly, session creation, reviewer invocation, domain locking, event capture, and conversation logging
+- Native Pi custom tools for triage, ledger, and identity operations
+- Validation pipeline orchestration in `src/validation/pipeline.ts`
+- Operator CLI commands: `validate`, `status`, `dispose`, `dispose-bulk`
+- Prompt templates in `prompts/` and Pi agent definitions in `.pi/agents/`
+- 3 adversarial reviews conducted and addressed (see `docs/reviews/`)
+- Parity check against Python oracle completed (see `docs/parity-check.md`)
+- One open backlog item: VULN-003 (domain lock wiring blocked by Pi SDK constraint, see `backlog.yml`)
 
 ## Architecture
 

@@ -2,7 +2,18 @@
 
 ## Current Implementation Status
 
-Sortie is currently implemented as protocol contracts, harness/runtime support, native custom tools, the end-to-end validation pipeline, and operator-facing CLI commands. Prompt templates and Pi agent definitions are also present as repository assets.
+All 22 implementation tasks across Phases 0--8 are complete. The system is fully implemented: protocol contracts, harness/runtime support, native custom tools, end-to-end validation pipeline, and operator-facing CLI commands. Prompt templates and Pi agent definitions are also present as repository assets.
+
+**Test suite:** 738 tests, 0 failures, 48 test files.
+
+**Adversarial reviews conducted:**
+- Phase 5 -- Gemini adversarial security review (`docs/reviews/gemini/2026-03-30-phase5-adversarial-gemini.md`)
+- Phase 6 -- Gemini adversarial review (`docs/reviews/gemini/2026-03-30-2006-phase6-gemini.md`)
+- Phase 7+8 -- Claude adversarial review (`docs/reviews/claude/2026-03-30-phase7-phase8-adversarial-claude.md`)
+
+All issues raised in adversarial reviews have been addressed except VULN-003 (see `backlog.yml`).
+
+**Parity check:** Behavioral equivalence verified against the Python oracle implementation (`docs/parity-check.md`).
 
 ## Implemented Modules
 
@@ -29,6 +40,7 @@ Runtime-facing modules and the only Pi SDK seam:
 - `prompt.ts`: reviewer and debrief prompt assembly plus template loading
 - `conversation-log.ts`: per-reviewer transcript capture with filename sanitization
 - `events.ts`: in-memory run event collection and summary aggregation
+- `prompt-assets.test.ts`: structural tests for prompt template files
 
 ### `src/tools/`
 
@@ -41,9 +53,10 @@ Native Pi custom tools that expose contract functions to lead sessions:
 
 ### `src/test-support/`
 
-Shared helpers for fixture-backed tests:
+Shared helpers and structural tests:
 
 - `load-fixture.ts`: YAML fixture loader rooted at `fixtures/`
+- `agent-definitions.test.ts`: structural validation of `.pi/agents/` definitions
 
 ### `src/validation/`
 
@@ -54,8 +67,9 @@ Shared helpers for fixture-backed tests:
 
 - `validate.ts`: config loading plus validation execution
 - `status.ts`: ledger status output
-- `dispose.ts`: single and bulk disposition commands
+- `dispose.ts`: single and bulk disposition commands (`dispose` and `dispose-bulk`)
 - `index.ts`: argv parsing and command dispatch
+- `smoke.test.ts`: end-to-end CLI smoke tests via subprocess execution
 
 ### `prompts/`
 
@@ -88,6 +102,10 @@ The currently implemented code follows this direction:
 - Domain-locked sessions enforce allowed write paths relative to a workspace root.
 - Bash is blocked in domain-locked sessions because shell commands can bypass file-path restrictions.
 - Lead-session custom tools are the intended write path for `.sortie` artifacts.
+
+## Open Backlog
+
+- **VULN-003:** Wire domain lock into pipeline-level tool enforcement. The `createDomainLock()` function is built and tested but the returned checker is not wired into live sessions due to Pi SDK lacking a public `beforeToolCall` hook. See `backlog.yml` for details.
 
 ## Documentation Contract
 
