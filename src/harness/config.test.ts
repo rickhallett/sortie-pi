@@ -8,6 +8,8 @@ import { join } from "node:path";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
+const FIXTURES_DIR = join(import.meta.dir, "../../fixtures");
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -439,6 +441,70 @@ describe("loadHarnessConfig — nested schema validation", () => {
     const { path, cleanup } = await writeTempYaml(yaml);
     try {
       expect(() => loadHarnessConfig(path)).toThrow(/debrief\.provider/);
+    } finally {
+      await cleanup();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sorties config
+// ---------------------------------------------------------------------------
+
+describe("sorties config", () => {
+  test("parses sorties section with orchestrator, lead, and worker", () => {
+    const fixturePath = join(FIXTURES_DIR, "sorties/valid-config.yaml");
+    const config = loadHarnessConfig(fixturePath);
+
+    expect(config.sorties).toBeDefined();
+    const sorties = config.sorties!;
+
+    // orchestrator
+    expect(sorties["orchestrator"]).toEqual({
+      definition: ".pi/agents/orchestrator.md",
+      tools: ["delegate", "sortie-triage", "sortie-ledger", "sortie-identity"],
+      can_delegate_to: ["validation-lead"],
+    });
+
+    // validation-lead
+    expect(sorties["validation-lead"]).toEqual({
+      definition: ".pi/agents/validation-lead.md",
+      role: "lead",
+      tools: ["delegate", "sortie-triage", "sortie-ledger", "sortie-identity", "read", "grep", "find", "ls"],
+      can_delegate_to: ["reviewer-claude"],
+      write_scope: ".sortie/**",
+    });
+
+    // reviewer-claude
+    expect(sorties["reviewer-claude"]).toEqual({
+      definition: ".pi/agents/reviewer-claude.md",
+      role: "worker",
+      tools: ["read", "write", "edit", "grep", "find", "ls"],
+      can_delegate_to: [],
+    });
+  });
+
+  test("config without sorties section returns undefined sorties", async () => {
+    const yaml = `
+project: test
+roster:
+  - name: a
+    provider: p
+    model: m
+debrief:
+  model: m
+  provider: p
+  prompt_template: t
+triage:
+  block_on: ["critical"]
+modes:
+  code:
+    prompt_template: t
+`;
+    const { path, cleanup } = await writeTempYaml(yaml);
+    try {
+      const config = loadHarnessConfig(path);
+      expect(config.sorties).toBeUndefined();
     } finally {
       await cleanup();
     }

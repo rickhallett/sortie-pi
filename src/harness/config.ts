@@ -34,6 +34,14 @@ export interface DebriefConfig {
   prompt_template: string;
 }
 
+export interface SortieConfig {
+  definition: string;
+  tools: string[];
+  can_delegate_to: string[];
+  role?: string;
+  write_scope?: string;
+}
+
 export interface HarnessConfig {
   project: string;
   roster: RosterEntry[];
@@ -42,6 +50,7 @@ export interface HarnessConfig {
   modes: Record<string, ModeConfig>;
   deposition_dir: string;
   ledger_path: string;
+  sorties?: Record<string, SortieConfig>;
 }
 
 // ---------------------------------------------------------------------------
@@ -168,6 +177,44 @@ export function loadHarnessConfig(path: string): HarnessConfig {
     modes[name] = mode;
   }
 
+  // Sorties (optional)
+  let sorties: Record<string, SortieConfig> | undefined;
+  if (doc.sorties != null) {
+    if (typeof doc.sorties !== "object" || Array.isArray(doc.sorties)) {
+      throw new Error("sorties: must be a mapping");
+    }
+    sorties = {};
+    for (const [name, entry] of Object.entries(doc.sorties as Record<string, unknown>)) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        throw new Error(`sorties.${name}: must be an object`);
+      }
+      const e = entry as Record<string, unknown>;
+      if (typeof e.definition !== "string" || !e.definition) {
+        throw new Error(`sorties.${name}.definition: must be a non-empty string`);
+      }
+      if (!Array.isArray(e.tools) || !e.tools.every((t: unknown) => typeof t === "string")) {
+        throw new Error(`sorties.${name}.tools: must be a string array`);
+      }
+      if (!Array.isArray(e.can_delegate_to) || !e.can_delegate_to.every((t: unknown) => typeof t === "string")) {
+        throw new Error(`sorties.${name}.can_delegate_to: must be a string array`);
+      }
+      const sortieEntry: SortieConfig = {
+        definition: e.definition,
+        tools: e.tools as string[],
+        can_delegate_to: e.can_delegate_to as string[],
+      };
+      if (e.role != null) {
+        if (typeof e.role !== "string") throw new Error(`sorties.${name}.role: must be a string`);
+        sortieEntry.role = e.role;
+      }
+      if (e.write_scope != null) {
+        if (typeof e.write_scope !== "string") throw new Error(`sorties.${name}.write_scope: must be a string`);
+        sortieEntry.write_scope = e.write_scope;
+      }
+      sorties[name] = sortieEntry;
+    }
+  }
+
   return {
     project: doc.project as string,
     roster,
@@ -176,5 +223,6 @@ export function loadHarnessConfig(path: string): HarnessConfig {
     modes,
     deposition_dir: (doc.deposition_dir as string) ?? ".sortie",
     ledger_path: (doc.ledger_path as string) ?? ".sortie/ledger.yaml",
+    ...(sorties ? { sorties } : {}),
   };
 }

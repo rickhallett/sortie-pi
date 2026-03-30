@@ -1,0 +1,30 @@
+project: sortie-pi
+roster:
+  - name: claude
+    provider: anthropic
+    model: claude-sonnet-4-20250514
+debrief:
+  model: claude-sonnet-4-20250514
+  provider: anthropic
+  prompt_template: prompts/debrief.md
+triage:
+  block_on: ["critical", "major"]
+modes:
+  code:
+    prompt_template: prompts/sortie-code.md
+sorties:
+  orchestrator:
+    definition: .pi/agents/orchestrator.md
+    tools: [delegate, sortie-triage, sortie-ledger, sortie-identity]
+    can_delegate_to: [validation-lead]
+  validation-lead:
+    definition: .pi/agents/validation-lead.md
+    role: lead
+    tools: [delegate, sortie-triage, sortie-ledger, sortie-identity, read, grep, find, ls]
+    can_delegate_to: [reviewer-claude]
+    write_scope: ".sortie/**"
+  reviewer-claude:
+    definition: .pi/agents/reviewer-claude.md
+    role: worker
+    tools: [read, write, edit, grep, find, ls]
+    can_delegate_to: []
