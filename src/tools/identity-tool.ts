@@ -1,4 +1,5 @@
 import { Type, type Static } from "@sinclair/typebox";
+import { isAbsolute } from "node:path";
 import { getTreeSha, nextCycle, runId } from "../contracts/identity.js";
 import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
 
@@ -35,6 +36,19 @@ export const identityTool: ToolDefinition<typeof IdentityParams> = {
           if (!params.repo_path) {
             return {
               content: [{ type: "text" as const, text: "Error: repo_path parameter is required for tree-sha action" }],
+              details: {},
+            };
+          }
+          // VERIFY-002: Validate repo_path to prevent malicious .git/config execution
+          if (!isAbsolute(params.repo_path)) {
+            return {
+              content: [{ type: "text" as const, text: "Error: repo_path must be an absolute path" }],
+              details: {},
+            };
+          }
+          if (params.repo_path.includes("..")) {
+            return {
+              content: [{ type: "text" as const, text: "Error: repo_path must not contain path traversal sequences (..)" }],
               details: {},
             };
           }

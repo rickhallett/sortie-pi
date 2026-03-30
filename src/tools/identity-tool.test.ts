@@ -163,6 +163,36 @@ describe("sortie-identity tool", () => {
     });
   });
 
+  describe("repo_path validation (VERIFY-002)", () => {
+    test("rejects repo_path with .. traversal sequences", async () => {
+      const result = await identityTool.execute(
+        "call-sec-1",
+        { action: "tree-sha", repo_path: "/tmp/../etc" },
+        undefined,
+        undefined,
+        ctx,
+      );
+
+      const text = textOf(result);
+      expect(text).toMatch(/^Error: /);
+      expect(text.toLowerCase()).toContain("traversal");
+    });
+
+    test("rejects repo_path that is not absolute", async () => {
+      const result = await identityTool.execute(
+        "call-sec-2",
+        { action: "tree-sha", repo_path: "relative/path" },
+        undefined,
+        undefined,
+        ctx,
+      );
+
+      const text = textOf(result);
+      expect(text).toMatch(/^Error: /);
+      expect(text.toLowerCase()).toContain("absolute");
+    });
+  });
+
   describe("malformed input handling", () => {
     test("returns error message for unknown action", async () => {
       const result = await identityTool.execute(
