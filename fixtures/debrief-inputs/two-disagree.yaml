@@ -1,0 +1,30 @@
+description: Two reviewers flag different issues — divergent findings
+reviewers:
+  - model: claude-sonnet-4-20250514
+    verdict: pass_with_findings
+    findings:
+      - id: F001
+        severity: minor
+        file: src/utils/parse.ts
+        line: 42
+        category: style
+        summary: Unused variable
+        detail: "Variable tempResult is assigned but never read."
+    tokens: { input: 1100, output: 200, total: 1300 }
+    wall_time_ms: 2400
+    error: null
+  - model: gemini-2.5-pro
+    verdict: pass_with_findings
+    findings:
+      - id: F001
+        severity: major
+        file: src/api/handler.ts
+        line: 78
+        category: correctness
+        summary: Missing null check on response body
+        detail: "The response body is accessed without checking for null, which can throw at runtime."
+    tokens: { input: 1200, output: 250, total: 1450 }
+    wall_time_ms: 2900
+    error: null
+expected_convergent_count: 0
+expected_divergent_count: 2

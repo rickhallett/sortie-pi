@@ -1,0 +1,9 @@
+model: claude-sonnet-4-20250514
+verdict: pass
+findings: []
+tokens:
+  input: 1200
+  output: 150
+  total: 1350
+wall_time_ms: 2300
+error: null

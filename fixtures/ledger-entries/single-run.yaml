@@ -1,0 +1,39 @@
+runs:
+  - run_id: "a1b2c3d4-1"
+    tree_sha: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+    cycle: 1
+    timestamp: "2026-03-30T12:00:10Z"
+    project: sortie-pi
+    branch: feature/add-parser
+    worker_branch: feature/add-parser
+    mode: code
+    verdict: pass
+    convergence: none
+    debrief_model: claude-sonnet-4-20250514
+    roster_used: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+    model_status:
+      claude-sonnet-4-20250514:
+        verdict: pass
+        error: null
+        findings_count: 0
+        wall_time_ms: 2300
+        tokens: { input: 1200, output: 150, total: 1350 }
+      gemini-2.5-pro:
+        verdict: pass
+        error: null
+        findings_count: 0
+        wall_time_ms: 3100
+        tokens: { input: 1400, output: 200, total: 1600 }
+    findings: []
+    diff_stats: { files: 3, insertions: 45, deletions: 12, raw: "3 files changed, 45 insertions(+), 12 deletions(-)" }
+    wall_time_ms: 8500
+    tokens:
+      by_model:
+        claude-sonnet-4-20250514: { input: 1200, output: 150, total: 1350 }
+        gemini-2.5-pro: { input: 1400, output: 200, total: 1600 }
+      total: 2950
+    findings_total: 0
+    findings_convergent: 0
+    findings_divergent: 0
+    by_severity: { critical: 0, major: 0, minor: 0 }
+    dispositions: { fixed: 0, false-positive: 0, deferred: 0, disagree: 0 }

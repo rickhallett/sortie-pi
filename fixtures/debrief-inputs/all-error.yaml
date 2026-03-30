@@ -1,0 +1,15 @@
+description: All reviewers errored — fail-secure, verdict must be error
+reviewers:
+  - model: claude-sonnet-4-20250514
+    verdict: error
+    findings: []
+    tokens: null
+    wall_time_ms: 30000
+    error: "Request timed out after 30000ms"
+  - model: gemini-2.5-pro
+    verdict: error
+    findings: []
+    tokens: null
+    wall_time_ms: 30000
+    error: "API returned 503 Service Unavailable"
+expected_verdict: error

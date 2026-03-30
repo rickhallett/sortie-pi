@@ -1,0 +1,13 @@
+description: No findings — clean merge
+input_verdict:
+  verdict: pass
+  convergence: none
+  findings: []
+config:
+  block_on: ["critical", "major"]
+expected:
+  action: merge
+  exit_code: 0
+  blocking_findings: []
+  advisory_findings: []
+  all_clear_warning: "Zero findings across all reviewers — verify review depth"

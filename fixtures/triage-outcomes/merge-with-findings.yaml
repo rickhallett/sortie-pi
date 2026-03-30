@@ -1,0 +1,28 @@
+description: Divergent findings only — merge with advisory findings
+input_verdict:
+  verdict: pass_with_findings
+  convergence: divergent
+  findings:
+    - id: CF001
+      severity: minor
+      convergence: divergent
+      sources: ["gemini-2.5-pro"]
+      file: src/utils/parse.ts
+      line: 42
+      category: style
+      summary: Unused variable
+    - id: CF002
+      severity: major
+      convergence: divergent
+      sources: ["claude-sonnet-4-20250514"]
+      file: src/api/handler.ts
+      line: 78
+      category: correctness
+      summary: Missing null check
+config:
+  block_on: ["critical", "major"]
+expected:
+  action: merge_with_findings
+  exit_code: 2
+  blocking_findings: []
+  advisory_findings_count: 2

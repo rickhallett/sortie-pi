@@ -1,0 +1,20 @@
+description: Divergent critical finding — does NOT block (only convergent findings can block)
+input_verdict:
+  verdict: fail
+  convergence: divergent
+  findings:
+    - id: CF001
+      severity: critical
+      convergence: divergent
+      sources: ["claude-sonnet-4-20250514"]
+      file: src/auth/session.ts
+      line: 15
+      category: security
+      summary: Session token logged in plaintext
+config:
+  block_on: ["critical", "major"]
+expected:
+  action: merge_with_findings
+  exit_code: 2
+  blocking_findings: []
+  advisory_findings_count: 1

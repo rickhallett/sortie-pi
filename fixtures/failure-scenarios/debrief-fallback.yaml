@@ -1,0 +1,32 @@
+description: Debrief model fails — fallback aggregation applied, findings preserved with divergent convergence
+reviewers:
+  - model: claude-sonnet-4-20250514
+    verdict: pass_with_findings
+    findings:
+      - id: F001
+        severity: minor
+        file: src/utils/parse.ts
+        line: 42
+        category: style
+        summary: Unused variable
+        detail: "Variable tempResult is assigned but never read."
+    tokens: { input: 1100, output: 200, total: 1300 }
+    wall_time_ms: 2400
+    error: null
+  - model: gemini-2.5-pro
+    verdict: pass_with_findings
+    findings:
+      - id: F001
+        severity: major
+        file: src/api/handler.ts
+        line: 78
+        category: correctness
+        summary: Missing null check
+        detail: "Response body accessed without null guard."
+    tokens: { input: 1200, output: 250, total: 1450 }
+    wall_time_ms: 2900
+    error: null
+debrief_error: "Debrief model returned 500 Internal Server Error"
+expected_verdict: pass_with_findings
+expected_convergence: divergent
+expected_findings_count: 2

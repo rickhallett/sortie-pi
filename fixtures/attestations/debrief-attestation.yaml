@@ -1,0 +1,8 @@
+step: debrief
+tree_sha: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+cycle: 1
+verdict: pass
+findings_count: 0
+tokens: 2400
+wall_time_ms: 4500
+timestamp: "2026-03-30T12:00:05Z"

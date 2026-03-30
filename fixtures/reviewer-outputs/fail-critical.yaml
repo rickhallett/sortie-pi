@@ -1,0 +1,16 @@
+model: gpt-4.1
+verdict: fail
+findings:
+  - id: F001
+    severity: critical
+    file: src/auth/session.ts
+    line: 15
+    category: security
+    summary: Session token logged in plaintext
+    detail: "The session token is passed to console.log() without redaction. This exposes authentication credentials in production logs."
+tokens:
+  input: 1100
+  output: 280
+  total: 1380
+wall_time_ms: 2800
+error: null

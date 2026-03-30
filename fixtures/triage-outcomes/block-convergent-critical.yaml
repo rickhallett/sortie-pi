@@ -1,0 +1,20 @@
+description: Convergent critical finding — blocks merge
+input_verdict:
+  verdict: fail
+  convergence: convergent
+  findings:
+    - id: CF001
+      severity: critical
+      convergence: convergent
+      sources: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+      file: src/auth/session.ts
+      line: 15
+      category: security
+      summary: Session token logged in plaintext
+config:
+  block_on: ["critical", "major"]
+expected:
+  action: block
+  exit_code: 1
+  blocking_findings_count: 1
+  advisory_findings: []

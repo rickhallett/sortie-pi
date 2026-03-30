@@ -1,0 +1,19 @@
+verdict: fail
+convergence: convergent
+findings:
+  - id: CF001
+    severity: critical
+    convergence: convergent
+    sources: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+    file: src/auth/session.ts
+    line: 15
+    category: security
+    summary: Session token logged in plaintext
+    detail: "Session token exposed in console.log output. Both reviewers independently identified this credential leak."
+    disposition: null
+tree_sha: "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0a1b2"
+cycle: 1
+run_id: "c3d4e5f6-1"
+branch: feature/add-auth
+mode: code
+error: null

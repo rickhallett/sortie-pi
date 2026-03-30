@@ -1,0 +1,29 @@
+verdict: pass_with_findings
+convergence: divergent
+findings:
+  - id: CF001
+    severity: minor
+    convergence: divergent
+    sources: ["gemini-2.5-pro"]
+    file: src/utils/parse.ts
+    line: 42
+    category: style
+    summary: Unused variable should be removed
+    detail: "Variable tempResult is assigned but never read."
+    disposition: null
+  - id: CF002
+    severity: major
+    convergence: divergent
+    sources: ["claude-sonnet-4-20250514"]
+    file: src/api/handler.ts
+    line: 78
+    category: correctness
+    summary: Missing null check on response body
+    detail: "Response body accessed without null guard."
+    disposition: null
+tree_sha: "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0a1"
+cycle: 1
+run_id: "b2c3d4e5-1"
+branch: feature/add-parser
+mode: code
+error: null

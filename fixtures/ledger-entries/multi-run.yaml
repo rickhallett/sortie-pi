@@ -1,0 +1,88 @@
+runs:
+  - run_id: "a1b2c3d4-1"
+    tree_sha: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+    cycle: 1
+    timestamp: "2026-03-30T12:00:10Z"
+    project: sortie-pi
+    branch: feature/add-parser
+    worker_branch: feature/add-parser
+    mode: code
+    verdict: fail
+    convergence: convergent
+    debrief_model: claude-sonnet-4-20250514
+    roster_used: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+    model_status:
+      claude-sonnet-4-20250514:
+        verdict: fail
+        error: null
+        findings_count: 1
+        wall_time_ms: 2800
+        tokens: { input: 1100, output: 280, total: 1380 }
+      gemini-2.5-pro:
+        verdict: fail
+        error: null
+        findings_count: 1
+        wall_time_ms: 3200
+        tokens: { input: 1200, output: 300, total: 1500 }
+    findings:
+      - id: CF001
+        severity: critical
+        convergence: convergent
+        sources: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+        file: src/auth/session.ts
+        line: 15
+        category: security
+        summary: Session token logged in plaintext
+        detail: "Session token exposed in console.log output."
+        disposition: null
+    diff_stats: { files: 2, insertions: 30, deletions: 5, raw: "2 files changed, 30 insertions(+), 5 deletions(-)" }
+    wall_time_ms: 9000
+    tokens:
+      by_model:
+        claude-sonnet-4-20250514: { input: 1100, output: 280, total: 1380 }
+        gemini-2.5-pro: { input: 1200, output: 300, total: 1500 }
+      total: 2880
+    findings_total: 1
+    findings_convergent: 1
+    findings_divergent: 0
+    by_severity: { critical: 1, major: 0, minor: 0 }
+    dispositions: { fixed: 0, false-positive: 0, deferred: 0, disagree: 0 }
+
+  - run_id: "b2c3d4e5-1"
+    tree_sha: "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0a1"
+    cycle: 1
+    timestamp: "2026-03-30T12:05:30Z"
+    project: sortie-pi
+    branch: feature/add-parser
+    worker_branch: feature/add-parser
+    mode: code
+    verdict: pass
+    convergence: none
+    debrief_model: claude-sonnet-4-20250514
+    roster_used: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+    model_status:
+      claude-sonnet-4-20250514:
+        verdict: pass
+        error: null
+        findings_count: 0
+        wall_time_ms: 2100
+        tokens: { input: 1150, output: 140, total: 1290 }
+      gemini-2.5-pro:
+        verdict: pass
+        error: null
+        findings_count: 0
+        wall_time_ms: 2900
+        tokens: { input: 1350, output: 180, total: 1530 }
+    findings: []
+    diff_stats: { files: 1, insertions: 5, deletions: 3, raw: "1 file changed, 5 insertions(+), 3 deletions(-)" }
+    wall_time_ms: 7500
+    tokens:
+      by_model:
+        claude-sonnet-4-20250514: { input: 1150, output: 140, total: 1290 }
+        gemini-2.5-pro: { input: 1350, output: 180, total: 1530 }
+      total: 2820
+    findings_total: 0
+    findings_convergent: 0
+    findings_divergent: 0
+    by_severity: { critical: 0, major: 0, minor: 0 }
+    dispositions: { fixed: 0, false-positive: 0, deferred: 0, disagree: 0 }

@@ -1,0 +1,59 @@
+runs:
+  - run_id: "c3d4e5f6-1"
+    tree_sha: "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0a1b2"
+    cycle: 1
+    timestamp: "2026-03-30T14:00:00Z"
+    project: sortie-pi
+    branch: feature/add-auth
+    worker_branch: feature/add-auth
+    mode: code
+    verdict: pass_with_findings
+    convergence: mixed
+    debrief_model: claude-sonnet-4-20250514
+    roster_used: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+    model_status:
+      claude-sonnet-4-20250514:
+        verdict: pass_with_findings
+        error: null
+        findings_count: 2
+        wall_time_ms: 3000
+        tokens: { input: 1300, output: 350, total: 1650 }
+      gemini-2.5-pro:
+        verdict: pass_with_findings
+        error: null
+        findings_count: 1
+        wall_time_ms: 3100
+        tokens: { input: 1200, output: 280, total: 1480 }
+    findings:
+      - id: CF001
+        severity: major
+        convergence: convergent
+        sources: ["claude-sonnet-4-20250514", "gemini-2.5-pro"]
+        file: src/auth/session.ts
+        line: 22
+        category: correctness
+        summary: Race condition in token refresh
+        detail: "Concurrent requests can trigger duplicate refresh calls."
+        disposition: fixed
+      - id: CF002
+        severity: minor
+        convergence: divergent
+        sources: ["claude-sonnet-4-20250514"]
+        file: src/auth/session.ts
+        line: 45
+        category: style
+        summary: Inconsistent error message format
+        detail: "Error messages use different capitalization patterns."
+        disposition: false-positive
+    diff_stats: { files: 2, insertions: 55, deletions: 10, raw: "2 files changed, 55 insertions(+), 10 deletions(-)" }
+    wall_time_ms: 9500
+    tokens:
+      by_model:
+        claude-sonnet-4-20250514: { input: 1300, output: 350, total: 1650 }
+        gemini-2.5-pro: { input: 1200, output: 280, total: 1480 }
+      total: 3130
+    findings_total: 2
+    findings_convergent: 1
+    findings_divergent: 1
+    by_severity: { critical: 0, major: 1, minor: 1 }
+    dispositions: { fixed: 1, false-positive: 1, deferred: 0, disagree: 0 }

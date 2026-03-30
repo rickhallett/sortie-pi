@@ -1,0 +1,23 @@
+model: gemini-2.5-pro
+verdict: pass_with_findings
+findings:
+  - id: F001
+    severity: minor
+    file: src/utils/parse.ts
+    line: 42
+    category: style
+    summary: Unused variable should be removed
+    detail: "The variable `tempResult` is assigned but never read. This is likely a leftover from a previous refactor."
+  - id: F002
+    severity: minor
+    file: src/utils/parse.ts
+    line: 88
+    category: maintainability
+    summary: Magic number should be a named constant
+    detail: "The threshold value 256 appears without explanation. Extract to a named constant for clarity."
+tokens:
+  input: 1400
+  output: 320
+  total: 1720
+wall_time_ms: 3100
+error: null
