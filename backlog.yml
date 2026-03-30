@@ -1,0 +1,20 @@
+# Sortie Pi — Backlog
+# Items deferred from adversarial reviews or design decisions.
+# Each item links to its provenance (review doc, issue, etc.).
+
+- id: VULN-003
+  title: Wire domain lock into pipeline-level tool enforcement
+  severity: high
+  phase: 6
+  provenance: docs/reviews/gemini/2026-03-30-phase5-adversarial-gemini.md
+  description: >
+    createDomainLock() is built and tested but never invoked outside tests.
+    The Pi SDK has no public beforeToolCall hook, so integration must happen
+    at the pipeline level — either by wrapping tool functions or intercepting
+    calls in the validation pipeline before dispatching to sessions.
+    Lead sessions currently get unrestricted codingTools.
+  acceptance_criteria:
+    - Lead session writes are scoped to .sortie/{run_id}/** at runtime
+    - Attempts to write outside the scoped path return an error to the agent
+    - Bash tool is blocked for lead sessions (enforced by domain lock)
+    - Integration tested in pipeline e2e tests
