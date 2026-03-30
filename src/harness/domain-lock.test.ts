@@ -71,7 +71,7 @@ describe("createDomainLock — empty patterns (read-only)", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — .sortie/** pattern", () => {
-  const lock = createDomainLock([".sortie/**"]);
+  const lock = createDomainLock([".sortie/**"], "/workspace/project");
 
   test("allows write to .sortie/abc-1/verdict.yaml", () => {
     const result = lock({ tool: "write", path: ".sortie/abc-1/verdict.yaml" });
@@ -96,9 +96,9 @@ describe("createDomainLock — .sortie/** pattern", () => {
     expect(result.allowed).toBe(false);
   });
 
-  test("allows bash when patterns exist", () => {
+  test("blocks bash even when patterns exist (VULN-001)", () => {
     const result = lock({ tool: "bash", command: "echo hello" });
-    expect(result.allowed).toBe(true);
+    expect(result.allowed).toBe(false);
   });
 });
 
@@ -107,7 +107,7 @@ describe("createDomainLock — .sortie/** pattern", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — multiple patterns", () => {
-  const lock = createDomainLock([".sortie/**", "prompts/**"]);
+  const lock = createDomainLock([".sortie/**", "prompts/**"], "/workspace/project");
 
   test("allows write to .sortie/abc-1/verdict.yaml", () => {
     const result = lock({ tool: "write", path: ".sortie/abc-1/verdict.yaml" });
@@ -140,7 +140,7 @@ describe("createDomainLock — multiple patterns", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — single-level wildcard", () => {
-  const lock = createDomainLock(["prompts/*.md"]);
+  const lock = createDomainLock(["prompts/*.md"], "/workspace/project");
 
   test("allows write to prompts/debrief.md", () => {
     const result = lock({ tool: "write", path: "prompts/debrief.md" });
@@ -163,7 +163,7 @@ describe("createDomainLock — single-level wildcard", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — exact file path", () => {
-  const lock = createDomainLock([".sortie/ledger.yaml"]);
+  const lock = createDomainLock([".sortie/ledger.yaml"], "/workspace/project");
 
   test("allows write to exact path", () => {
     const result = lock({ tool: "write", path: ".sortie/ledger.yaml" });
@@ -241,7 +241,7 @@ describe("createDomainLock — unknown tools", () => {
   });
 
   test("another unknown tool is allowed with patterns", () => {
-    const lockWithPatterns = createDomainLock([".sortie/**"]);
+    const lockWithPatterns = createDomainLock([".sortie/**"], "/workspace/project");
     const result = lockWithPatterns({ tool: "fancy_inspect" });
     expect(result.allowed).toBe(true);
   });
@@ -252,7 +252,7 @@ describe("createDomainLock — unknown tools", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — reason strings", () => {
-  const lock = createDomainLock([".sortie/**"]);
+  const lock = createDomainLock([".sortie/**"], "/workspace/project");
 
   test("blocked write reason mentions the path", () => {
     const result = lock({ tool: "write", path: "src/main.ts" });
@@ -278,9 +278,9 @@ describe("createDomainLock — reason strings", () => {
     }
   });
 
-  test("read-only bash block explains why", () => {
-    const readOnlyLock = createDomainLock([]);
-    const result = readOnlyLock({ tool: "bash", command: "echo hello" });
+  test("bash block explains why", () => {
+    const bashLock = createDomainLock([".sortie/**"], "/workspace/project");
+    const result = bashLock({ tool: "bash", command: "echo hello" });
     expect(result.allowed).toBe(false);
     if (!result.allowed) {
       expect(result.reason).toContain("bash");
@@ -293,34 +293,94 @@ describe("createDomainLock — reason strings", () => {
 // ---------------------------------------------------------------------------
 
 describe("path traversal prevention", () => {
+  const cwd = "/workspace/project";
+
   test(".sortie/../src/index.ts is blocked by .sortie/** pattern", () => {
-    const lock = createDomainLock([".sortie/**"]);
+    const lock = createDomainLock([".sortie/**"], cwd);
     const result = lock({ tool: "write", path: ".sortie/../src/index.ts" });
     expect(result.allowed).toBe(false);
   });
 
   test(".sortie/./verdict.yaml is allowed (normalizes to .sortie/verdict.yaml)", () => {
-    const lock = createDomainLock([".sortie/**"]);
+    const lock = createDomainLock([".sortie/**"], cwd);
     const result = lock({ tool: "write", path: ".sortie/./verdict.yaml" });
     expect(result.allowed).toBe(true);
   });
 
   test(".sortie/abc/../def/verdict.yaml is allowed (stays within .sortie/)", () => {
-    const lock = createDomainLock([".sortie/**"]);
+    const lock = createDomainLock([".sortie/**"], cwd);
     const result = lock({ tool: "write", path: ".sortie/abc/../def/verdict.yaml" });
     expect(result.allowed).toBe(true);
   });
 
   test("../../../etc/passwd is blocked", () => {
-    const lock = createDomainLock([".sortie/**"]);
+    const lock = createDomainLock([".sortie/**"], cwd);
     const result = lock({ tool: "write", path: "../../../etc/passwd" });
     expect(result.allowed).toBe(false);
   });
 
   test(".sortie/../../outside is blocked (traverses out)", () => {
-    const lock = createDomainLock([".sortie/**"]);
+    const lock = createDomainLock([".sortie/**"], cwd);
     const result = lock({ tool: "edit", path: ".sortie/../../outside" });
     expect(result.allowed).toBe(false);
+  });
+
+  test("absolute path /etc/passwd is blocked even with ** pattern", () => {
+    const lock = createDomainLock([".sortie/**"], cwd);
+    const result = lock({ tool: "write", path: "/etc/passwd" });
+    expect(result.allowed).toBe(false);
+    if (!result.allowed) {
+      expect(result.reason).toContain("outside workspace");
+    }
+  });
+
+  test("absolute path /etc/passwd.ts is blocked even with **/*.ts pattern", () => {
+    const lock = createDomainLock(["**/*.ts"], cwd);
+    const result = lock({ tool: "write", path: "/etc/passwd.ts" });
+    expect(result.allowed).toBe(false);
+  });
+
+  test("absolute path matching pattern prefix is blocked if outside cwd", () => {
+    const lock = createDomainLock([".sortie/**"], "/home/user/project");
+    const result = lock({ tool: "write", path: "/tmp/.sortie/evil.yaml" });
+    expect(result.allowed).toBe(false);
+  });
+
+  test("relative path resolves against cwd for containment check", () => {
+    const lock = createDomainLock([".sortie/**"], "/home/user/project");
+    const result = lock({ tool: "write", path: ".sortie/run-1/verdict.yaml" });
+    expect(result.allowed).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bash tool is ALWAYS blocked in domain-locked sessions (VULN-001)
+// ---------------------------------------------------------------------------
+
+describe("bash tool always blocked in domain-locked sessions", () => {
+  test("bash blocked even when write patterns exist", () => {
+    const lock = createDomainLock([".sortie/**"], "/workspace");
+    const result = lock({ tool: "bash", command: "echo hello" });
+    expect(result.allowed).toBe(false);
+    if (!result.allowed) {
+      expect(result.reason).toContain("bash");
+    }
+  });
+
+  test("bash blocked with multiple write patterns", () => {
+    const lock = createDomainLock([".sortie/**", "prompts/**"], "/workspace");
+    const result = lock({ tool: "bash", command: "cat file.txt" });
+    expect(result.allowed).toBe(false);
+  });
+
+  test("bash blocked reason explains sandbox bypass risk", () => {
+    const lock = createDomainLock([".sortie/**"], "/workspace");
+    const result = lock({ tool: "bash", command: "rm -rf /" });
+    expect(result.allowed).toBe(false);
+    if (!result.allowed) {
+      expect(result.reason).toContain("bash");
+      expect(result.reason).toContain("bypass");
+    }
   });
 });
 
@@ -329,7 +389,7 @@ describe("path traversal prevention", () => {
 // ---------------------------------------------------------------------------
 
 describe("createDomainLock — write/edit without path", () => {
-  const lock = createDomainLock([".sortie/**"]);
+  const lock = createDomainLock([".sortie/**"], "/workspace/project");
 
   test("write without path is blocked", () => {
     const result = lock({ tool: "write" });
