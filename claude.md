@@ -96,3 +96,9 @@ Three-layer architecture with strict dependency direction: contracts -> harness 
     sortie-{reviewer_name}.yaml  # per-reviewer attestation
     debrief.yaml                 # debrief attestation
 ```
+
+## Agents
+
+- **`.claude/agents/adversarial-security.md`**: Adversarial security review agent to proactively identify and report exploitable vulnerabilities.
+- **`.claude/agents/full-spectrum-review.md`**: Full spectrum code review agent to identify bugs, performance bottlenecks, and architectural issues.
+- **`.claude/agents/adversarial-process.md`**: Adversarial process review agent to audit git history, commit discipline, and TDD adherence.
