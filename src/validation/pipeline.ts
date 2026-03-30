@@ -1,7 +1,7 @@
 // Validation pipeline — SORTIE_PROTOCOL_v3.md Section 10
 // Orchestrates the full validation lifecycle: Steps 1-11.
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml, stringify } from "yaml";
@@ -120,11 +120,11 @@ export class UnknownModeError extends Error {
 
 function computeDiff(cwd: string, branch: string): string {
   try {
-    return execSync(`git diff --merge-base origin/main ${branch}`, {
-      cwd,
-      encoding: "utf-8",
-      maxBuffer: 10 * 1024 * 1024,
-    }).trim();
+    return execFileSync(
+      "git",
+      ["diff", "--merge-base", "origin/main", branch],
+      { cwd, encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 },
+    ).trim();
   } catch {
     return "";
   }
@@ -291,6 +291,9 @@ export async function runPipeline(
   // --- Step 6: Debrief ---
   let verdict: Verdict;
   let debriefFallback = false;
+  let debriefTokens = 0;
+  let debriefCost = 0;
+  let debriefWallTimeMs = 0;
 
   const allErrored = reviewerOutputs.every((o) => o.verdict === "error");
 
@@ -313,40 +316,49 @@ export async function runPipeline(
     };
   } else {
     // Try debrief model
+    // Assemble debrief prompt with reviewer outputs
+    const sortieOutputs = reviewerOutputs.map(
+      (output) => `### ${output.model}\n${output.raw_output ?? ""}`,
+    );
+    const debriefPrompt = assembleDebriefPrompt(
+      debriefTemplate,
+      sortieOutputs,
+      treeSha,
+      branch,
+      rosterEntries.length,
+    );
+
+    // Create domain lock scoped to this run's directory (VULN-003)
+    // NOTE: The returned checker is not yet wired into SDK built-in tools
+    // because the Pi SDK lacks a public beforeToolCall hook. See backlog.yml.
+    createDomainLock(
+      [`${config.deposition_dir}/${runIdStr}/**`],
+      cwd,
+    );
+
+    // Create lead session — dispose in finally to prevent leak (ISSUE-003)
+    const { session: leadSession, dispose: disposeLead } = await createLeadSession(
+      config.debrief,
+      { cwd, customTools: sortieCustomTools },
+    );
+
     try {
-      // Assemble debrief prompt with reviewer outputs
-      const sortieOutputs = reviewerOutputs.map(
-        (output) => `### ${output.model}\n${output.raw_output ?? ""}`,
-      );
-      const debriefPrompt = assembleDebriefPrompt(
-        debriefTemplate,
-        sortieOutputs,
-        treeSha,
-        branch,
-        rosterEntries.length,
-      );
-
-      // Create domain lock scoped to this run's directory (VULN-003)
-      createDomainLock(
-        [`${config.deposition_dir}/${runIdStr}/**`],
-        cwd,
-      );
-
-      // Create and invoke lead session
-      const { session: leadSession, dispose: disposeLead } = await createLeadSession(
-        config.debrief,
-        { cwd, customTools: sortieCustomTools },
-      );
-
       events.emit({
         type: "debrief:start",
         step: "debrief",
         timestamp: new Date().toISOString(),
       });
 
+      const debriefStart = Date.now();
       await leadSession.prompt(debriefPrompt);
+      const debriefWallMs = Date.now() - debriefStart;
       const debriefResponse = leadSession.getLastAssistantText();
-      disposeLead();
+
+      // Capture lead session metrics (ISSUE-004)
+      const leadStats = leadSession.getSessionStats();
+      debriefTokens = leadStats.tokens?.total ?? 0;
+      debriefCost = leadStats.cost ?? 0;
+      debriefWallTimeMs = debriefWallMs;
 
       // Parse debrief response as verdict
       const parsed = parseYaml(debriefResponse ?? "") as Record<string, unknown>;
@@ -368,6 +380,9 @@ export async function runPipeline(
         type: "debrief:complete",
         step: "debrief",
         timestamp: new Date().toISOString(),
+        tokens: debriefTokens,
+        cost: debriefCost,
+        duration_ms: debriefWallTimeMs,
       });
     } catch (err) {
       // Debrief failed — use deterministic fallback (Section 8.6)
@@ -393,6 +408,8 @@ export async function runPipeline(
         timestamp: new Date().toISOString(),
         error: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      disposeLead();
     }
   }
 
@@ -411,8 +428,8 @@ export async function runPipeline(
     cycle,
     verdict: verdict.verdict,
     findings_count: verdict.findings.length,
-    tokens: 0,
-    wall_time_ms: 0,
+    tokens: debriefTokens,
+    wall_time_ms: debriefWallTimeMs,
     timestamp: new Date().toISOString(),
   });
 
@@ -452,7 +469,10 @@ export async function runPipeline(
     findings: verdict.findings,
     diff_stats: { files: 0, insertions: 0, deletions: 0 },
     wall_time_ms: 0,
-    tokens: buildTokensSummary(rosterEntries, reviewerOutputs),
+    tokens: {
+      ...buildTokensSummary(rosterEntries, reviewerOutputs),
+      total: buildTokensSummary(rosterEntries, reviewerOutputs).total + debriefTokens,
+    },
     findings_total: 0,
     findings_convergent: 0,
     findings_divergent: 0,
