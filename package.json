@@ -5,7 +5,8 @@
   "scripts": {
     "build": "bun tsc",
     "check": "bun tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "test:watch": "SKIP_SMOKE=1 bun test --watch"
   },
   "dependencies": {
     "@mariozechner/pi-ai": "^0.64.0",

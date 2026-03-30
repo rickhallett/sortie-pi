@@ -77,7 +77,10 @@ function initGitRepoWithOriginMain(root: string, branch: string): void {
   });
 }
 
-describe("cli smoke", () => {
+// Smoke tests call `bun run build` which writes to dist/, triggering the
+// file watcher and causing an infinite restart loop in `bun test --watch`.
+// Use `bun run test:watch` (sets SKIP_SMOKE=1) for the development loop.
+describe.skipIf(!!process.env.SKIP_SMOKE)("cli smoke", () => {
   let tmpDir = "";
 
   afterEach(() => {
