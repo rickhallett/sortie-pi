@@ -41,7 +41,15 @@ bun run build                  # compile to dist/
 
 ## Architecture
 
-Current dependency direction: contracts -> harness -> tools -> validation -> cli.
+Current dependency direction:
+
+```
+contracts -> harness -> tools -> orchestrator
+                                      |
+                                validation (pipeline.ts — CI path)
+                                      |
+                                     cli
+```
 
 ### `src/contracts/` — Protocol-aligned domain logic (zero Pi SDK imports)
 - `types.ts` — Shared protocol types (Finding, ReviewerOutput, Verdict, TriageResult, etc.)
@@ -82,6 +90,13 @@ Current dependency direction: contracts -> harness -> tools -> validation -> cli
 - `dispose.ts` — Single and bulk disposition commands (`dispose` and `dispose-bulk`)
 - `index.ts` — CLI argv parsing and dispatch
 - `smoke.test.ts` — End-to-end CLI smoke tests via subprocess execution
+
+### `src/orchestrator/` — Multi-agent delegation framework
+- `registry.ts` — parse `.pi/agents/*.md` definitions, build sortie lookup from config
+- `delegate-tool.ts` — the `delegate` Pi custom tool: spawns child agent sessions, captures results
+- `progress.ts` — compact progress line emission via `sendCustomMessage`
+- `bootstrap.ts` — load config, build registry, create orchestrator session with tools
+- `index.ts` — public API exports
 
 ### `prompts/` — Prompt assets
 - `sortie-code.md`, `sortie-tests.md`, `sortie-docs.md` — Reviewer prompts referenced by `harness.yaml`

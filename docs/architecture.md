@@ -71,6 +71,16 @@ Shared helpers and structural tests:
 - `index.ts`: argv parsing and command dispatch
 - `smoke.test.ts`: end-to-end CLI smoke tests via subprocess execution
 
+### `src/orchestrator/`
+
+Multi-agent delegation framework that sits between `tools` and the `validation`/`cli` layers:
+
+- `registry.ts`: parse `.pi/agents/*.md` definitions, build sortie lookup from config
+- `delegate-tool.ts`: the `delegate` Pi custom tool — spawns child agent sessions, captures results
+- `progress.ts`: compact progress line emission via `sendCustomMessage`
+- `bootstrap.ts`: load config, build registry, create orchestrator session with tools
+- `index.ts`: public API exports
+
 ### `prompts/`
 
 Repository prompt assets used by `harness.yaml`:
@@ -88,12 +98,19 @@ Static Pi agent definitions for orchestration, lead synthesis, and reviewer role
 
 The currently implemented code follows this direction:
 
-`contracts` -> `harness` -> `tools` -> `validation` -> `cli`
+```
+contracts -> harness -> tools -> orchestrator
+                                      |
+                                validation (pipeline.ts — CI path)
+                                      |
+                                     cli
+```
 
 - `contracts` stays runtime-agnostic
 - `harness` owns Pi SDK interaction and runtime safety controls
 - `tools` adapt contract operations into Pi custom tools
-- `validation` composes the runtime review lifecycle
+- `orchestrator` provides multi-agent delegation, registry, and progress reporting
+- `validation` composes the runtime review lifecycle (CI path through orchestrator)
 - `cli` exposes operator-facing entry points
 
 ## Runtime Boundaries
