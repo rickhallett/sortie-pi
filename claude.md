@@ -37,11 +37,11 @@ bun run build                  # compile to dist/
 
 - **Bun only.** No npm, pnpm, or yarn. No Vitest or Jest. Bun is the runtime, package manager, and test runner.
 - **Strict red-green TDD.** Always write the failing test first, then the implementation to make it pass. No exceptions. The developer runs `bun test --watch` in a live terminal as the primary code health indicator.
-- **Markdown filenames stay lowercase.** Any repository `.md` file must use a lowercase filename.
+- **Markdown filenames stay lowercase.** Any repository `.md` file must use a lowercase filename (excepting CLAUDE.md / README.md)
 
 ## Architecture
 
-Three-layer architecture with strict dependency direction: contracts -> harness -> validation.
+Current dependency direction: contracts -> harness -> tools. The `validation` and `cli` directories exist as scaffolding, but they do not yet contain implementation modules.
 
 ### `src/contracts/` — Protocol-aligned domain logic (zero Pi SDK imports)
 - `types.ts` — Shared protocol types (Finding, ReviewerOutput, Verdict, TriageResult, etc.)
@@ -56,17 +56,25 @@ Three-layer architecture with strict dependency direction: contracts -> harness 
 - `config.ts` — `harness.yaml` loader and validation
 - `session-factory.ts` — Pi session creation, model resolution (sole Pi SDK seam)
 - `invoker.ts` — Reviewer session lifecycle, parallel invocation
-- `domain-lock.ts` — `beforeToolCall` write restriction (reviewers are read-only)
+- `domain-lock.ts` — `beforeToolCall` write restriction with workspace containment checks; bash is blocked in locked sessions
 - `prompt.ts` — Template assembly with `{branch}`, `{diff}`, `{sortie_outputs}` substitution
-- `conversation-log.ts` — Session transcript capture
+- `conversation-log.ts` — Session transcript capture with reviewer-name sanitization for log filenames
 - `events.ts` — Runtime event emission and aggregation
 
-### `src/validation/` — Validation pipeline (full lifecycle, protocol Section 10)
-- `pipeline.ts` — Steps 1-11: diff, identity, reviewers, debrief, triage, ledger, exit
+### `src/tools/` — Pi `customTool` registrations
+- `triage-tool.ts` — YAML-in/YAML-out wrapper around contract triage
+- `ledger-tool.ts` — Run lookup and disposition updates backed by the ledger contract
+- `identity-tool.ts` — Tree SHA, next-cycle, and run-id helpers with basic path validation
+- `index.ts` — Heterogeneous tool export for lead sessions
 
-### `src/tools/` — Pi `customTool` registrations (TypeBox schemas, call contracts directly)
+### `src/test-support/` — Shared helpers for fixture-backed tests
+- `load-fixture.ts` — Reads YAML fixtures from `fixtures/`
 
-### `src/cli/` — Operator entry points: `validate`, `status`, `dispose`
+### `src/validation/` — Validation pipeline scaffold
+- Directory exists, but protocol step orchestration modules are not implemented yet
+
+### `src/cli/` — Operator entry-point scaffold
+- Directory exists, but `validate`, `status`, and disposition commands are not implemented yet
 
 ## Key Design Principles
 
@@ -74,7 +82,7 @@ Three-layer architecture with strict dependency direction: contracts -> harness 
 - **Session factory is the single Pi SDK seam.** API changes require surgery in one file only.
 - **Fixtures before runtime.** Golden test data in `fixtures/` anchors protocol behavior before any LLM sessions. All contract tests must use these fixtures.
 - **Tools are native.** `customTools` call TypeScript contract modules directly — no subprocesses, no Python.
-- **Domain locking via `beforeToolCall`.** Reviewers are read-only; the validation lead writes only to `.sortie/**`.
+- **Domain locking via `beforeToolCall`.** Reviewers are read-only; locked sessions enforce workspace containment and reject bash entirely.
 - **Fail-secure.** Total reviewer failure = error verdict = merge blocked (exit 1). Infrastructure failure must never silently produce a passing result.
 
 ## Protocol Concepts (quick reference)
@@ -96,6 +104,11 @@ Three-layer architecture with strict dependency direction: contracts -> harness 
     sortie-{reviewer_name}.yaml  # per-reviewer attestation
     debrief.yaml                 # debrief attestation
 ```
+
+## Architecture Docs
+
+- `docs/architecture.md` is the canonical snapshot of the implemented repository architecture and current delivery status.
+- `readme.md` should stay aligned with `docs/architecture.md` for any top-level structure or workflow claims.
 
 ## Agents
 

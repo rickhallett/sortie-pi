@@ -37,39 +37,33 @@ bun test            # run tests
 bun run build       # compile
 ```
 
-### Run Validation
+## Current Status
 
-```bash
-node dist/cli/index.js validate --config harness.yaml --branch <branch> [--mode code]
-```
+- Implemented today:
+  - Protocol contracts for identity, triage, ledger, attestations, fallback debrief, and verdict artifacts
+  - Harness modules for config loading, prompt assembly, session creation, reviewer invocation, domain locking, event capture, and conversation logging
+  - Native Pi custom tools for triage, ledger, and identity operations
+- Scaffolded but not yet implemented:
+  - `src/validation/` pipeline orchestration
+  - `src/cli/` operator entry points
 
-### Check Status
-
-```bash
-node dist/cli/index.js status --ledger .sortie/ledger.yaml
-```
-
-### Update Finding Dispositions
-
-```bash
-node dist/cli/index.js dispose --ledger .sortie/ledger.yaml --run-id <id> --finding <fid> --disposition fixed
-node dist/cli/index.js dispose-bulk --ledger .sortie/ledger.yaml --run-id <id> --disposition deferred
-```
+The current repository state is heavily test-driven infrastructure and contract code. The end-to-end validation pipeline and CLI commands described in the protocol are planned next, but they are not wired into runnable `validate`, `status`, or disposition commands yet.
 
 ## Architecture
 
 ```
 src/
   contracts/     # Protocol domain logic (zero runtime deps)
-  harness/       # Pi SDK integration (session factory is sole SDK seam)
-  validation/    # Full validation lifecycle pipeline
-  tools/         # Pi customTool registrations
-  cli/           # Operator entry points
+  harness/       # Pi SDK integration and runtime guards
+  tools/         # Native Pi customTool registrations
+  test-support/  # Shared fixture loaders for tests
+  validation/    # Pipeline scaffold (currently empty)
+  cli/           # CLI scaffold (currently empty)
 ```
 
-Three layers with strict dependency direction: **contracts** (pure logic) -> **harness** (Pi SDK) -> **validation** (pipeline orchestration).
+The implemented dependency direction is **contracts** -> **harness** -> **tools**. The `validation` and `cli` directories already exist as scaffolding, but their production modules have not been added yet.
 
-See `claude.md` for detailed module descriptions.
+See `docs/architecture.md` for the current architecture map and `claude.md` for contributor guidance.
 
 ## Protocol
 
