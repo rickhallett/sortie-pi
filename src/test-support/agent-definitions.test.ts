@@ -68,10 +68,18 @@ describe("agent definitions", () => {
     expect(frontmatter.write_scope).toBe(".sortie/**");
   });
 
-  test("orchestrator is delegate-only and zero-write", () => {
+  test("orchestrator delegates and does not write", () => {
     const content = readAgent("orchestrator.md");
     expect(content).toContain("Delegate-only");
     expect(content).toContain("Zero writes");
-    expect(content).toContain("Do not edit repository files");
+    expect(content).toContain("delegate tool");
+  });
+
+  test("validation lead includes protocol steps and may decline tasks", () => {
+    const content = readAgent("validation-lead.md");
+    expect(content).toContain("sortie-triage");
+    expect(content).toContain("sortie-identity");
+    expect(content).toContain("decline");
+    expect(content).toContain("fail-secure");
   });
 });

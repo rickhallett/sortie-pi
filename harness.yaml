@@ -37,3 +37,30 @@ modes:
 
 deposition_dir: .sortie
 ledger_path: .sortie/ledger.yaml
+
+sorties:
+  orchestrator:
+    definition: .pi/agents/orchestrator.md
+    tools: [delegate, sortie-triage, sortie-ledger, sortie-identity]
+    can_delegate_to: [validation-lead]
+  validation-lead:
+    definition: .pi/agents/validation-lead.md
+    role: lead
+    tools: [delegate, sortie-triage, sortie-ledger, sortie-identity, read, grep, find, ls]
+    can_delegate_to: [reviewer-claude, reviewer-gemini, reviewer-codex]
+    write_scope: ".sortie/**"
+  reviewer-claude:
+    definition: .pi/agents/reviewer-claude.md
+    role: worker
+    tools: [read, write, edit, grep, find, ls]
+    can_delegate_to: []
+  reviewer-gemini:
+    definition: .pi/agents/reviewer-gemini.md
+    role: worker
+    tools: [read, write, edit, grep, find, ls]
+    can_delegate_to: []
+  reviewer-codex:
+    definition: .pi/agents/reviewer-codex.md
+    role: worker
+    tools: [read, write, edit, grep, find, ls]
+    can_delegate_to: []
