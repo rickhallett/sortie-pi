@@ -8,6 +8,8 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@mariozechner/pi-ai": "^0.64.0",
+    "@mariozechner/pi-coding-agent": "^0.64.0",
     "@sinclair/typebox": "^0.34.0",
     "yaml": "^2.7.0"
   },
