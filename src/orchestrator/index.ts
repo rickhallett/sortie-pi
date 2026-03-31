@@ -1,6 +1,6 @@
 // Orchestrator subsystem public API
 
-export { buildOrchestratorConfig, type OrchestratorConfig } from "./bootstrap.js";
+export { buildOrchestratorConfig, startOrchestrator, type OrchestratorConfig } from "./bootstrap.js";
 export {
   buildRegistry,
   parseAgentDefinition,

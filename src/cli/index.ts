@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { runDisposeBulkCommand, runDisposeCommand } from "./dispose.js";
+import { runOrchestrateCommand } from "./orchestrate.js";
 import { runStatusCommand } from "./status.js";
 import { runValidateCommand, type WriterLike } from "./validate.js";
 
@@ -26,6 +27,7 @@ function writeLine(writer: WriterLike, message: string): void {
 function usage(): string {
   return [
     "Usage:",
+    "  orchestrate --config <path>",
     "  validate --config <path> --branch <branch> [--mode <mode>]",
     "  status --ledger <path>",
     "  dispose --ledger <path> --run-id <id> --finding <id> --disposition <value>",
@@ -81,6 +83,15 @@ export async function main(
     const flags = parseFlags(rest);
 
     switch (command) {
+      case "orchestrate":
+        if (!flags.config) throw new Error("Missing required flag: --config");
+        return runOrchestrateCommand({
+          configPath: flags.config,
+          cwd,
+          stdout,
+          stderr,
+        });
+
       case "validate":
         if (!flags.config) throw new Error("Missing required flag: --config");
         if (!flags.branch) throw new Error("Missing required flag: --branch");
