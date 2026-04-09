@@ -2,6 +2,19 @@
 
 Validation subsystem for agentic software delivery. Sortie evaluates proposed code changes at merge boundaries by running parallel LLM-based reviews, synthesizing results via convergence analysis, applying deterministic triage rules, and emitting durable audit artifacts.
 
+```mermaid
+graph LR
+    DIFF["git diff"] --> R1["Reviewer 1"]
+    DIFF --> R2["Reviewer 2"]
+    DIFF --> RN["Reviewer N"]
+    R1 & R2 & RN --> DEB["Debrief -- Synthesis"]
+    DEB --> TRI{"Deterministic Triage"}
+    TRI -->|"exit 0"| MERGE["merge"]
+    TRI -->|"exit 1"| BLOCK["block"]
+    TRI -->|"exit 2"| FIND["merge with findings"]
+    TRI --> LED[("Append-only Ledger")]
+```
+
 ## How It Works
 
 1. **Parallel review** -- Multiple LLM reviewers inspect the diff independently, producing structured findings with severity ratings.
